@@ -8,8 +8,21 @@ def webhook():
     req = request.get_json(silent=True) or {}
     tag = (req.get("fulfillmentInfo") or {}).get("tag", "")
 
+    # Try to extract user text from multiple common places
+    user_text = (
+        (((req.get("text") or {}).get("text")) if isinstance(req.get("text"), dict) else None)
+        or (((req.get("payload") or {}).get("user_message")) if isinstance(req.get("payload"), dict) else None)
+        or (req.get("sessionInfo", {}).get("parameters", {}).get("user_message"))
+        or ""
+    )
+
     if tag == "testTag":
         response_text = "Webhook test successful!"
+    elif tag == "triage":
+        if user_text:
+            response_text = f"Ik heb je bericht ontvangen: '{user_text}'. (triage-logica komt hier)"
+        else:
+            response_text = "Ik heb je bericht ontvangen, maar ik zie geen tekst. Kun je je klacht in 1 zin omschrijven?"
     else:
         response_text = f"Reached webhook. Tag={tag or 'EMPTY'}"
 
