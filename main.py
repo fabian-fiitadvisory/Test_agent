@@ -6,11 +6,15 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def webhook():
     req = request.get_json(silent=True) or {}
-    tag = (req.get("fulfillmentInfo") or {}).get("tag", "")
 
-    # Try to extract user text from multiple common places
+    # Accept both formats:
+    # - Playbook/OpenAPI tool: {"tag": "..."}
+    # - Dialogflow CX webhook: {"fulfillmentInfo": {"tag": "..."}}
+    tag = req.get("tag") or (req.get("fulfillmentInfo") or {}).get("tag", "")
+
+    # Accept user message from multiple formats
     user_text = (
-        (((req.get("text") or {}).get("text")) if isinstance(req.get("text"), dict) else None)
+        req.get("user_message")
         or (((req.get("payload") or {}).get("user_message")) if isinstance(req.get("payload"), dict) else None)
         or (req.get("sessionInfo", {}).get("parameters", {}).get("user_message"))
         or ""
