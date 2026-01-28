@@ -31,6 +31,11 @@ def webhook():
         response_text = f"Reached webhook. Tag={tag or 'EMPTY'}"
 
     return jsonify({
+        "ok": True,
+        "tag": tag,
+        "user_message": user_text,
+        "message": response_text,
+        
         "fulfillment_response": {
             "messages": [
                 {"text": {"text": [response_text]}}
